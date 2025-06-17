@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # -- File paths
-envdata_file =  "/home/submit/rozalena/LLP_Project_Data/Data_LLPskim_Run2023Cv1_ntuplesv3_5June.root" #/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_LLPskim_2023Dv1.root"
-mc_file = "/home/submit/rozalena/LLP_Project_Data/MC_LLP_mh125_ms50_ctau3m_ntuplesv3_5June_small.root " #"/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_HToSSTo4b_125_50_CTau3000.root"
+envdata_file =  "/home/submit/rozalena/LLP_Project_Data/Data_LLPskim_Run2023Cv1_ntuplesv3_5June.root"
+mc_file = "/home/submit/rozalena/LLP_Project_Data/MC_LLP_mh125_ms50_ctau3m_ntuplesv3_5June_small.root"
 
 # -- Tree name
 tree_name = "PerJet_NoSel"
@@ -27,19 +27,17 @@ mc_tree = load_tree(mc_file, tree_name)
 data_arrays = data_tree.arrays(variables_to_plot + ["Pass_WPlusJets"], library="np")
 mc_arrays = mc_tree.arrays(variables_to_plot + ["Pass_LLPMatched", "perJet_MatchedLLP_DecayR"], library="np")
 
-
-print(mc_arrays["perJet_MatchedLLP_TravelTime"])
 # -- Basic selections
-# pass_wplusjets when a W+ boson is produced along with some jets (spray of particles that comes from particle collisions)
-data_mask = data_arrays["Pass_WPlusJets"] == 1 # .sum() tells us only 2/79724 entries pass the data mask for perJet_EnergyFrac_Depth1
+# Pass_WPlusJets when a W+ boson is produced along with some jets (spray of particles that comes from particle collisions)
+data_mask = data_arrays["Pass_WPlusJets"] == 1 # .sum() tells us only 2/79724 entries pass the data mask
 mc_mask = mc_arrays["Pass_LLPMatched"] == 1 # would also add must pass the LLP trigger selection
 
 # -- Option: Additional MC cuts
 def get_decay_r_mc_cut(mc_arrays, decayr_min, decayr_max):
     return (mc_arrays["perJet_MatchedLLP_DecayR"] > decayr_min) & (mc_arrays["perJet_MatchedLLP_DecayR"] < decayr_max)
 
-def get_timing_mc_cut(mc_arrays, time_min, time_max): # might also not work bc this is using the data events on mc events but perJet_MatchedLLP_TravelTime shows no real data (either 0 or -1000)
-    return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max) # maybe use a diff time var 
+def get_timing_mc_cut(mc_arrays, time_min, time_max):
+    return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max) # seems to be only time var
 
 # -- Plotting function with normalization option
 def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normalize_to_one=False, output_prefix="plot"):
