@@ -3,15 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # -- File paths
-envdata_file =  "/ceph/submit/data/user/p/pcharris/Roza/minituple_LLPskim_2023Dv1.root" #/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_LLPskim_2023Dv1.root"
-mc_file = "/ceph/submit/data/user/p/pcharris/Roza/minituple_HToSSTo4b_125_50_CTau3000.root" #"/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_HToSSTo4b_125_50_CTau3000.root"
+envdata_file =  "/home/submit/rozalena/LLP_Project_Data/Data_LLPskim_Run2023Cv1_ntuplesv3_5June.root" #/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_LLPskim_2023Dv1.root"
+mc_file = "/home/submit/rozalena/LLP_Project_Data/MC_LLP_mh125_ms50_ctau3m_ntuplesv3_5June_small.root " #"/eos/cms/store/group/phys_exotica/HCAL_LLP/MiniTuples/v3.14/minituple_HToSSTo4b_125_50_CTau3000.root"
 
 # -- Tree name
 tree_name = "PerJet_NoSel"
 
 # -- Variables to plot
 variables_to_plot = ["perJet_EnergyFrac_Depth1", "perJet_NeutralHadEFrac", "perJet_Pt", "perJet_Mass", "perJet_Area", "perJet_ChargedHadEFrac", "perJet_PhoEFrac", "perJet_EleEFrac", "perJet_MuonEFrac", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime", "perJet_MatchedLLP_Eta", "perJet_S_phiphi", "perJet_S_etaeta", "perJet_S_etaphi"]
-print(len(variables_to_plot))
 # -- Selection functions
 def load_tree(file_path, tree_name):
     file = uproot.open(file_path)
@@ -28,13 +27,19 @@ mc_tree = load_tree(mc_file, tree_name)
 data_arrays = data_tree.arrays(variables_to_plot + ["Pass_WPlusJets"], library="np")
 mc_arrays = mc_tree.arrays(variables_to_plot + ["Pass_LLPMatched", "perJet_MatchedLLP_DecayR"], library="np")
 
+
+print(mc_arrays["perJet_MatchedLLP_TravelTime"])
 # -- Basic selections
-data_mask = data_arrays["Pass_WPlusJets"] == 1
+# pass_wplusjets when a W+ boson is produced along with some jets (spray of particles that comes from particle collisions)
+data_mask = data_arrays["Pass_WPlusJets"] == 1 # .sum() tells us only 2/79724 entries pass the data mask for perJet_EnergyFrac_Depth1
 mc_mask = mc_arrays["Pass_LLPMatched"] == 1 # would also add must pass the LLP trigger selection
 
 # -- Option: Additional MC cuts
-def get_mc_cut(mc_arrays, decayr_min, decayr_max):
+def get_decay_r_mc_cut(mc_arrays, decayr_min, decayr_max):
     return (mc_arrays["perJet_MatchedLLP_DecayR"] > decayr_min) & (mc_arrays["perJet_MatchedLLP_DecayR"] < decayr_max)
+
+def get_timing_mc_cut(mc_arrays, time_min, time_max): # might also not work bc this is using the data events on mc events but perJet_MatchedLLP_TravelTime shows no real data (either 0 or -1000)
+    return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max) # maybe use a diff time var 
 
 # -- Plotting function with normalization option
 def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normalize_to_one=False, output_prefix="plot"):
@@ -59,8 +64,9 @@ def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normali
 
     # Extra MC cuts (optional)
     if extra_mc_cuts:
-        for label, (rmin, rmax), color in extra_mc_cuts:
-            cut_mask = mc_mask & get_mc_cut(mc_arrays, rmin, rmax)
+        for label, (tmin, tmax), color in extra_mc_cuts:
+            # cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, rmin, rmax)
+            cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax) # need to make the code cleaner so you can switch btwn diff cut types
             vals = mc_arrays[var_name][cut_mask]
             if normalize_to_one and len(vals) > 0:
                 weights = np.ones_like(vals) / len(vals)
@@ -74,21 +80,32 @@ def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normali
     plt.grid(True)
     plt.tight_layout()
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"decay_radius_constraint_graphs/{outname}"
+    outname = f"time_constraint_graphs/{outname}"
     plt.savefig(outname)
     plt.close()
 
     print("Saved plots to current directory!")
 
 # -- Extra MC regions to compare (optional)
-extra_mc_regions = [
+extra_decay_r_mc_regions = [
+    ("DecayR 0-129 cm", (0, 129), "green"),
+    ("DecayR 183-295 cm", (183, 295), "red")
+]
+
+more_decay_r_mc_regions_constraints = [
     ("DecayR Tracker 0-10 cm", (0, 10), "green"),
     ("DecayR Tracker 10-129 cm", (10, 129), "red"),
     ("DecayR ECAL 129–177 cm", (129, 177), "orange"),
     ("DecayR HCAL 177-295 cm", (177, 295), "purple")
 ]
 
+extra_time_constraints = [
+    ("Time 0-0.5 µs", (0, 0.5), "green"),
+    ("Time 0.5-1 µs", (0.5, 1), "red"),
+    ("Time 1-2 µs", (1, 2), "purple"),
+]
+
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
 for var in variables_to_plot:
-    make_overlay_plot(var, bins=50, range=None, extra_mc_cuts=extra_mc_regions, normalize_to_one=normalize, output_prefix="overlay")
+    make_overlay_plot(var, bins=50, range=None, extra_mc_cuts=extra_time_constraints, normalize_to_one=normalize, output_prefix="overlay")
