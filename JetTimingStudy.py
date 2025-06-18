@@ -11,6 +11,27 @@ tree_name = "PerJet_NoSel"
 
 # -- Variables to plot
 variables_to_plot = ["perJet_EnergyFrac_Depth1", "perJet_NeutralHadEFrac", "perJet_Pt", "perJet_Mass", "perJet_Area", "perJet_ChargedHadEFrac", "perJet_PhoEFrac", "perJet_EleEFrac", "perJet_MuonEFrac", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime", "perJet_MatchedLLP_Eta", "perJet_S_phiphi", "perJet_S_etaeta", "perJet_S_etaphi"]
+
+detailed_variables_to_plot = [
+    ("perJet_EnergyFrac_Depth1", True, -0.25, 2),
+    ("perJet_NeutralHadEFrac", False, 0, 2),
+    ("perJet_Pt", True, -10, 300),
+    ("perJet_Mass", True, -10, 60),
+    ("perJet_Area", False, 0, 0),
+    ("perJet_ChargedHadEFrac", False, 0, 1),
+    ("perJet_PhoEFrac", False, 0, 0),
+    ("perJet_EleEFrac", True, 0, 0.2),
+    ("perJet_MuonEFrac", True, 0, 0.2),
+    ("perJet_MatchedLLP_DecayZ", False, -100, 100),
+    ("perJet_MatchedLLP_DecayR", False, -150, 150),
+    ("perJet_MatchedLLP_TravelTime", False, -10, 10),
+    ("perJet_MatchedLLP_Eta", False, -10, 10),
+    ("perJet_S_phiphi", True, -0.2, 0.2),
+    ("perJet_S_etaeta", True, -0.2, 0.2),
+    ("perJet_S_etaphi", True, -0.2, 0.2)
+]
+
+
 # -- Selection functions
 def load_tree(file_path, tree_name):
     file = uproot.open(file_path)
@@ -32,45 +53,64 @@ mc_arrays = mc_tree.arrays(variables_to_plot + ["Pass_LLPMatched", "perJet_Match
 data_mask = data_arrays["Pass_WPlusJets"] == 1 # .sum() tells us only 2/79724 entries pass the data mask
 mc_mask = mc_arrays["Pass_LLPMatched"] == 1 # would also add must pass the LLP trigger selection
 
+data_vars_to_ignore = ["perJet_MatchedLLP_Eta", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime"]
+
 # -- Option: Additional MC cuts
+def get_cut(arrays, var_name, lower_bound, upper_bound):
+    return (arrays[var_name] >= lower_bound) & (arrays[var_name] <= upper_bound)
+
 def get_decay_r_mc_cut(mc_arrays, decayr_min, decayr_max):
     return (mc_arrays["perJet_MatchedLLP_DecayR"] > decayr_min) & (mc_arrays["perJet_MatchedLLP_DecayR"] < decayr_max)
 
 def get_timing_mc_cut(mc_arrays, time_min, time_max):
-    return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max) # seems to be only time var
+    return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max)
+
+def get_eta_mc_cut(mc_arrays, eta_min, eta_max):
+    return (mc_arrays["perJet_MatchedLLP_Eta"] > eta_min) & (mc_arrays["perJet_MatchedLLP_Eta"] < eta_max)
+
+def get_graph_range_cut(data_array, var_name, lower_bound, upper_bound): 
+    return (data_array[var_name] >= lower_bound) & (data_array[var_name] <= upper_bound)
 
 # -- Plotting function with normalization option
-def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normalize_to_one=False, output_prefix="plot"):
+def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bound=None, bins=50, extra_mc_cuts=None, normalize_to_one=False, output_prefix="plot"):
     print("Running plotting function: make_overlay_plot() for " + var_name)
     plt.figure(figsize=(8, 6))
 
     # Base selections
-    data_vals = data_arrays[var_name][data_mask]
-    mc_vals = mc_arrays[var_name][mc_mask]
+    if modified_range:
+        range_cut_mask = get_graph_range_cut(data_arrays, var_name, lower_bound, upper_bound)
+        data_vals = data_arrays[var_name][data_mask & range_cut_mask]
+    else:
+        data_vals = data_arrays[var_name][data_mask]
 
     # Draw data
-    hist_kwargs = dict(bins=bins, range=range, histtype='step', linewidth=2)
+    hist_range = (lower_bound, upper_bound) if modified_range else None
+    hist_kwargs = dict(bins=bins, range=hist_range, histtype='step', linewidth=2)
+
+    # To Read Graphs Better
+    if var_name in data_vars_to_ignore:
+        data_vals = []
 
     if normalize_to_one:
         data_weights = np.ones_like(data_vals) / len(data_vals) if len(data_vals) > 0 else None # basically doing 1/N for the histogram to normalize it
-        mc_weights = np.ones_like(mc_vals) / len(mc_vals) if len(mc_vals) > 0 else None
-        plt.hist(data_vals, weights=data_weights, label="Data", color="black", **hist_kwargs)
-        plt.hist(mc_vals, weights=mc_weights, label="MC (All)", color="blue", **hist_kwargs)
+        plt.hist(data_vals, weights=data_weights, label="Prompt Background (Data)", color="black", **hist_kwargs)
     else:
-        plt.hist(data_vals, label="Data", color="black", **hist_kwargs)
-        plt.hist(mc_vals, label="MC (All)", color="blue", **hist_kwargs)
+        plt.hist(data_vals, label="Prompt Background (Data)", color="black", **hist_kwargs)
 
     # Extra MC cuts (optional)
     if extra_mc_cuts:
         for label, (tmin, tmax), color in extra_mc_cuts:
-            # cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, rmin, rmax)
-            cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax) # need to make the code cleaner so you can switch btwn diff cut types
+            if modified_range:
+                cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, tmin, tmax) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
+            else:
+                cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, tmin, tmax)
             vals = mc_arrays[var_name][cut_mask]
+
             if normalize_to_one and len(vals) > 0:
                 weights = np.ones_like(vals) / len(vals)
             else:
                 weights = None
-            plt.hist(vals, weights=weights, label=f"MC ({label})", color=color, **hist_kwargs)
+            plt.hist(vals, weights=weights, label=f"LLP MC ({label})", color=color, **hist_kwargs)
 
     plt.xlabel(var_name)
     plt.ylabel("Normalized Fraction of Entries" if normalize_to_one else "Entries")
@@ -78,7 +118,7 @@ def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normali
     plt.grid(True)
     plt.tight_layout()
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"time_constraint_graphs/{outname}"
+    outname = f"decay_radius_constraint_graphs/{outname}"
     plt.savefig(outname)
     plt.close()
 
@@ -86,11 +126,6 @@ def make_overlay_plot(var_name, bins=50, range=None, extra_mc_cuts=None, normali
 
 # -- Extra MC regions to compare (optional)
 extra_decay_r_mc_regions = [
-    ("DecayR 0-129 cm", (0, 129), "green"),
-    ("DecayR 183-295 cm", (183, 295), "red")
-]
-
-more_decay_r_mc_regions_constraints = [
     ("DecayR Tracker 0-10 cm", (0, 10), "green"),
     ("DecayR Tracker 10-129 cm", (10, 129), "red"),
     ("DecayR ECAL 129–177 cm", (129, 177), "orange"),
@@ -98,12 +133,14 @@ more_decay_r_mc_regions_constraints = [
 ]
 
 extra_time_constraints = [
-    ("Time 0-0.5 µs", (0, 0.5), "green"),
-    ("Time 0.5-1 µs", (0.5, 1), "red"),
-    ("Time 1-2 µs", (1, 2), "purple"),
+    ("Time 0-1 ns", (0, 1), "green"), # change the range based on the graph 
+    ("Time 1-5 ns", (1, 5), "red"),
+    ("Time 5-10 ns", (5, 10), "purple"),
 ]
+
+# add eta constraints also based on the graph
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
-for var in variables_to_plot:
-    make_overlay_plot(var, bins=50, range=None, extra_mc_cuts=extra_time_constraints, normalize_to_one=normalize, output_prefix="overlay")
+for var, modify_range, lower_bound, upper_bound  in detailed_variables_to_plot:
+    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=50, extra_mc_cuts=extra_decay_r_mc_regions, normalize_to_one=normalize, output_prefix="overlay")
