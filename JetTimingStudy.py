@@ -12,25 +12,45 @@ tree_name = "PerJet_NoSel"
 # -- Variables to plot
 variables_to_plot = ["perJet_EnergyFrac_Depth1", "perJet_NeutralHadEFrac", "perJet_Pt", "perJet_Mass", "perJet_Area", "perJet_ChargedHadEFrac", "perJet_PhoEFrac", "perJet_EleEFrac", "perJet_MuonEFrac", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime", "perJet_MatchedLLP_Eta", "perJet_S_phiphi", "perJet_S_etaeta", "perJet_S_etaphi"]
 
-detailed_variables_to_plot = [
-    ("perJet_EnergyFrac_Depth1", True, -0.25, 2),
-    ("perJet_NeutralHadEFrac", False, 0, 2),
-    ("perJet_Pt", True, -10, 300),
-    ("perJet_Mass", True, -10, 60),
-    ("perJet_Area", False, 0, 0),
-    ("perJet_ChargedHadEFrac", False, 0, 1),
-    ("perJet_PhoEFrac", False, 0, 0),
-    ("perJet_EleEFrac", True, 0, 0.2),
-    ("perJet_MuonEFrac", True, 0, 0.2),
-    ("perJet_MatchedLLP_DecayZ", False, -100, 100),
-    ("perJet_MatchedLLP_DecayR", False, -150, 150),
-    ("perJet_MatchedLLP_TravelTime", False, -10, 10),
-    ("perJet_MatchedLLP_Eta", False, -10, 10),
-    ("perJet_S_phiphi", True, -0.2, 0.2),
-    ("perJet_S_etaeta", True, -0.2, 0.2),
-    ("perJet_S_etaphi", True, -0.2, 0.2)
-]
 
+# ideal for eta constraints 
+# detailed_variables_to_plot = [
+#     ("perJet_EnergyFrac_Depth1", True, -0.25, 1, 50),
+#     ("perJet_NeutralHadEFrac", True, 0, 1, 40),
+#     ("perJet_Pt", True, 0, 200, 50),
+#     ("perJet_Mass", True, -5, 30, 50),
+#     ("perJet_Area", True, 0.3, 0.7, 25),
+#     ("perJet_ChargedHadEFrac", True, -0.1, 1, 40),
+#     ("perJet_PhoEFrac", True, 0, 1, 45),
+#     ("perJet_EleEFrac", True, 0, 0.2, 50),
+#     ("perJet_MuonEFrac", True, 0, 0.2, 50),
+#     ("perJet_MatchedLLP_DecayZ", True, -550, 550, 50),
+#     ("perJet_MatchedLLP_DecayR", True, -50, 500, 50),
+#     ("perJet_MatchedLLP_TravelTime", True, 0, 30, 50),
+#     ("perJet_MatchedLLP_Eta", True, -3, 3, 45),
+#     ("perJet_S_phiphi", True, -0.2, 0.2, 50),
+#     ("perJet_S_etaeta", True, -0.2, 0.2, 50),
+#     ("perJet_S_etaphi", True, -0.2, 0.2, 50)
+# ]
+
+detailed_variables_to_plot = [
+    ("perJet_EnergyFrac_Depth1", False, -0.25, 1, 30),
+    ("perJet_NeutralHadEFrac", False, 0, 1, 40),
+    ("perJet_Pt", True, 0, 250, 50),
+    ("perJet_Mass", True, 0, 40, 50),
+    ("perJet_Area", True, 0.3, 0.7, 25),
+    ("perJet_ChargedHadEFrac", False, -0.1, 1, 40),
+    ("perJet_PhoEFrac", False, 0, 1, 25),
+    ("perJet_EleEFrac", True, -0.1, 0.2, 50),
+    ("perJet_MuonEFrac", True, 0, 0.2, 50),
+    ("perJet_MatchedLLP_DecayZ", True, -320, 320, 40),
+    ("perJet_MatchedLLP_DecayR", True, -10, 300, 40),
+    ("perJet_MatchedLLP_TravelTime", False, 0, 30, 25),
+    ("perJet_MatchedLLP_Eta", True, -3, 3, 40),
+    ("perJet_S_phiphi", True, 0, 0.08, 40),
+    ("perJet_S_etaeta", True, 0, 0.08, 40),
+    ("perJet_S_etaphi", True, 0, 0.05, 40)
+]
 
 # -- Selection functions
 def load_tree(file_path, tree_name):
@@ -66,7 +86,8 @@ def get_timing_mc_cut(mc_arrays, time_min, time_max):
     return (mc_arrays["perJet_MatchedLLP_TravelTime"] > time_min) & (mc_arrays["perJet_MatchedLLP_TravelTime"] < time_max)
 
 def get_eta_mc_cut(mc_arrays, eta_min, eta_max):
-    return (mc_arrays["perJet_MatchedLLP_Eta"] > eta_min) & (mc_arrays["perJet_MatchedLLP_Eta"] < eta_max)
+    return ((mc_arrays["perJet_MatchedLLP_Eta"] > eta_min[0]) & (mc_arrays["perJet_MatchedLLP_Eta"] <= eta_min[1])) | ((mc_arrays["perJet_MatchedLLP_Eta"] >= eta_max[0]) & (mc_arrays["perJet_MatchedLLP_Eta"] < eta_max[1]))
+
 
 def get_graph_range_cut(data_array, var_name, lower_bound, upper_bound): 
     return (data_array[var_name] >= lower_bound) & (data_array[var_name] <= upper_bound)
@@ -85,7 +106,12 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
 
     # Draw data
     hist_range = (lower_bound, upper_bound) if modified_range else None
-    hist_kwargs = dict(bins=bins, range=hist_range, histtype='step', linewidth=2)
+    if hist_range:
+        bin_edges = np.linspace(hist_range[0], hist_range[1], bins + 1)
+    else:
+        bin_edges = bins
+
+    hist_kwargs = dict(bins=bin_edges, range=hist_range, histtype='step', linewidth=2)
 
     # To Read Graphs Better
     if var_name in data_vars_to_ignore:
@@ -101,9 +127,10 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
     if extra_mc_cuts:
         for label, (tmin, tmax), color in extra_mc_cuts:
             if modified_range:
-                cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, tmin, tmax) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
+                cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
             else:
-                cut_mask = mc_mask & get_decay_r_mc_cut(mc_arrays, tmin, tmax)
+                cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax)
+
             vals = mc_arrays[var_name][cut_mask]
 
             if normalize_to_one and len(vals) > 0:
@@ -129,18 +156,26 @@ extra_decay_r_mc_regions = [
     ("DecayR Tracker 0-10 cm", (0, 10), "green"),
     ("DecayR Tracker 10-129 cm", (10, 129), "red"),
     ("DecayR ECAL 129–177 cm", (129, 177), "orange"),
-    ("DecayR HCAL 177-295 cm", (177, 295), "purple")
+    ("DecayR HCAL 177-295 cm", (177, 295), "blue")
 ]
 
 extra_time_constraints = [
-    ("Time 0-1 ns", (0, 1), "green"), # change the range based on the graph 
+    ("Time 0-1 ns", (0, 1), "green"),
     ("Time 1-5 ns", (1, 5), "red"),
-    ("Time 5-10 ns", (5, 10), "purple"),
+    ("Time 5-10 ns", (5, 10), "blue"),
+    ("Time 10-20 ns", (10, 12), "purple")
+]
+
+# add eta constraints also based on the graph
+exta_eta_constraints = [
+    ("η tracker -1.2-1.2", ((-1.2, 0),( 0, 1.2)), "green"),
+    ("η ECAL -1.6-1.6", ((-1.6, -1.2), (1.2, 1.6)), "red"),
+    ("η HCAL -2.4-2.4", ((-2.4, -1.6), (1.6, 2.4)), "blue")
 ]
 
 # add eta constraints also based on the graph
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
-for var, modify_range, lower_bound, upper_bound  in detailed_variables_to_plot:
-    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=50, extra_mc_cuts=extra_decay_r_mc_regions, normalize_to_one=normalize, output_prefix="overlay")
+for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
+    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=extra_time_constraints, normalize_to_one=normalize, output_prefix="overlay")
