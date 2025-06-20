@@ -88,6 +88,7 @@ def get_timing_mc_cut(mc_arrays, time_min, time_max):
 def get_eta_mc_cut(mc_arrays, eta_min, eta_max):
     return ((mc_arrays["perJet_MatchedLLP_Eta"] > eta_min[0]) & (mc_arrays["perJet_MatchedLLP_Eta"] <= eta_min[1])) | ((mc_arrays["perJet_MatchedLLP_Eta"] >= eta_max[0]) & (mc_arrays["perJet_MatchedLLP_Eta"] < eta_max[1]))
 
+
 def get_graph_range_cut(data_array, var_name, lower_bound, upper_bound): 
     return (data_array[var_name] >= lower_bound) & (data_array[var_name] <= upper_bound)
 
@@ -129,7 +130,9 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
                 cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
             else:
                 cut_mask = mc_mask & get_timing_mc_cut(mc_arrays, tmin, tmax)
+
             vals = mc_arrays[var_name][cut_mask]
+
             if normalize_to_one and len(vals) > 0:
                 weights = np.ones_like(vals) / len(vals)
             else:
@@ -142,7 +145,7 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
     plt.grid(True)
     plt.tight_layout()
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"time_constraint_graphs/{outname}"
+    outname = f"decay_radius_constraint_graphs/{outname}"
     plt.savefig(outname)
     plt.close()
 
@@ -168,8 +171,9 @@ exta_eta_constraints = [
     ("η tracker -1.2-1.2", ((-1.2, 0),( 0, 1.2)), "green"),
     ("η ECAL -1.6-1.6", ((-1.6, -1.2), (1.2, 1.6)), "red"),
     ("η HCAL -2.4-2.4", ((-2.4, -1.6), (1.6, 2.4)), "blue")
-
 ]
+
+# add eta constraints also based on the graph
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
