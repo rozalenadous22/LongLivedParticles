@@ -57,7 +57,7 @@ detailed_time_constraint_vars = [
     ("perJet_S_etaphi", True, 0, 0.05, 40),
     ("perJet_TDCavg", False, 0, 0, 40),
     ("perJet_TDCavg_energyWeight", False, 0, 0, 40),
-    ("perJet_Timeavg", False, 0, 0, 30),
+    ("perJet_Timeavg", True, -5, 15, 30),
     ("perJet_TDCnDelayed", False, 0, 0, 30)
 ]
  
@@ -83,9 +83,6 @@ detailed_decay_r_vars = [
     ("perJet_Timeavg", False, 0, 0, 20),
     ("perJet_TDCnDelayed", False, 0, 0, 20)
 ]
-
-# -- Edit this depending on constraints used
-detailed_variables_to_plot = detailed_eta_variables 
 
 # -- Selection functions
 def load_tree(file_path, tree_name):
@@ -181,7 +178,7 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
         plt.gca().set_yscale('log')
 
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"all_vars_eta_constraints/{outname}"
+    outname = f"all_vars_time_constraints/{outname}"
     plt.savefig(outname)
     plt.close()
 
@@ -208,6 +205,9 @@ exta_eta_constraints = [
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
+
+# Change based on type of constraint used (eta, time, decay r)
+constraint_type, constraint_function, detailed_variables_to_plot = extra_time_constraints, get_timing_mc_cut, detailed_time_constraint_vars 
+
 for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
-    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=exta_eta_constraints, extra_mc_cuts_function=get_eta_mc_cut, normalize_to_one=normalize, output_prefix="overlay")
-    # need to make this more effficient, only change one thing here for constraints... maybe pass in the function
+    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, extra_mc_cuts_function=constraint_function, normalize_to_one=normalize, output_prefix="overlay")
