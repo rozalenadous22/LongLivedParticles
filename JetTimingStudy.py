@@ -12,76 +12,51 @@ tree_name = "PerJet_NoSel"
 # -- Variables to plot
 variables_to_plot = ["perJet_TDCavg", "perJet_TDCavg_energyWeight", "perJet_TDCnDelayed", "perJet_Timeavg", "perJet_EnergyFrac_Depth1", "perJet_NeutralHadEFrac", "perJet_Pt", "perJet_Mass", "perJet_Area", "perJet_ChargedHadEFrac", "perJet_PhoEFrac", "perJet_EleEFrac", "perJet_MuonEFrac", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime", "perJet_MatchedLLP_Eta", "perJet_S_phiphi", "perJet_S_etaeta", "perJet_S_etaphi"]
 
-
-# -- Ideal for eta constraints 
-detailed_eta_variables = [
-    ("perJet_EnergyFrac_Depth1", True, -0.25, 1, 30),
-    ("perJet_NeutralHadEFrac", True, 0, 1, 30),
-    ("perJet_Pt", True, 0, 200, 30),
-    ("perJet_Mass", True, -5, 30, 35),
-    ("perJet_Area", True, 0.3, 0.7, 25),
-    ("perJet_ChargedHadEFrac", True, -0.1, 1, 40),
-    ("perJet_PhoEFrac", False, 0, 1, 25),
-    ("perJet_EleEFrac", True, 0, 0.2, 50),
-    ("perJet_MuonEFrac", True, 0, 0.2, 50),
-    ("perJet_MatchedLLP_DecayZ", True, -550, 550, 50),
-    ("perJet_MatchedLLP_DecayR", True, 0, 300, 40),
-    ("perJet_MatchedLLP_TravelTime", True, 0, 30, 50),
-    ("perJet_MatchedLLP_Eta", True, -3, 3, 45),
-    ("perJet_S_phiphi", True, -0.2, 0.2, 50),
-    ("perJet_S_etaeta", True, -0.2, 0.2, 50),
-    ("perJet_S_etaphi", True, -0.2, 0.2, 50),
-    ("perJet_TDCavg", False, 0, 0, 40),
-    ("perJet_TDCavg_energyWeight", False, 0, 0, 40),
-    ("perJet_Timeavg", False, 0, 0, 30),
-    ("perJet_TDCnDelayed", False, 0, 0, 30)
-]
-
 # -- Ideal for time constraints 
 detailed_time_constraint_vars = [
     ("perJet_EnergyFrac_Depth1", True, 0, 1, 30),
-    ("perJet_NeutralHadEFrac", False, 0, 1, 40),
+    ("perJet_NeutralHadEFrac", True, 0, 1, 30),
     ("perJet_Pt", True, 0, 250, 40),
     ("perJet_Mass", True, 0, 40, 40),
     ("perJet_Area", True, 0.3, 0.7, 25),
-    ("perJet_ChargedHadEFrac", False, -0.1, 1, 30),
-    ("perJet_PhoEFrac", False, 0, 1, 25),
+    ("perJet_ChargedHadEFrac", True, 0, 1, 30),
+    ("perJet_PhoEFrac", True, 0, 1, 25),
     ("perJet_EleEFrac", True, -0.1, 0.2, 50),
     ("perJet_MuonEFrac", True, 0, 0.2, 50),
     ("perJet_MatchedLLP_DecayZ", True, -320, 320, 40),
-    ("perJet_MatchedLLP_DecayR", True, -10, 300, 40),
-    ("perJet_MatchedLLP_TravelTime", False, 0, 30, 25),
+    ("perJet_MatchedLLP_DecayR", True, 0, 300, 40),
+    ("perJet_MatchedLLP_TravelTime", True, 0, 20, 25),
     ("perJet_MatchedLLP_Eta", True, -3, 3, 40),
     ("perJet_S_phiphi", True, 0, 0.08, 40),
     ("perJet_S_etaeta", True, 0, 0.08, 40),
     ("perJet_S_etaphi", True, 0, 0.05, 40),
-    ("perJet_TDCavg", False, 0, 0, 40),
-    ("perJet_TDCavg_energyWeight", False, 0, 0, 40),
+    ("perJet_TDCavg", True, 0, 2, 40),
+    ("perJet_TDCavg_energyWeight", True, 0, 2, 40),
     ("perJet_Timeavg", True, -5, 15, 30),
-    ("perJet_TDCnDelayed", False, 0, 0, 30)
+    ("perJet_TDCnDelayed", True, 0, 10, 30)
 ]
  
-detailed_decay_r_vars = [
+detailed_decay_r_constraint_vars = [
     ("perJet_EnergyFrac_Depth1", True, 0, 1, 30),
-    ("perJet_NeutralHadEFrac", False, 0, 1, 30),
+    ("perJet_NeutralHadEFrac", True, 0, 1, 30),
     ("perJet_Pt", True, 0, 250, 40),
-    ("perJet_Mass", True, 0, 40, 50),
+    ("perJet_Mass", True, 0, 40, 40),
     ("perJet_Area", True, 0.3, 0.7, 25),
-    ("perJet_ChargedHadEFrac", False, -0.1, 1, 40),
-    ("perJet_PhoEFrac", False, 0, 1, 25),
-    ("perJet_EleEFrac", True, -0.1, 0.2, 50),
-    ("perJet_MuonEFrac", True, 0, 0.2, 50),
+    ("perJet_ChargedHadEFrac", True, 0, 1, 30),
+    ("perJet_PhoEFrac", True, 0, 1, 30),
+    ("perJet_EleEFrac", True, 0, 0.2, 25),
+    ("perJet_MuonEFrac", True, 0, 0.2, 25),
     ("perJet_MatchedLLP_DecayZ", True, -320, 320, 40),
-    ("perJet_MatchedLLP_DecayR", True, -10, 300, 40),
-    ("perJet_MatchedLLP_TravelTime", False, 0, 30, 20),
+    ("perJet_MatchedLLP_DecayR", True, 0, 300, 40),
+    ("perJet_MatchedLLP_TravelTime", True, 0, 25, 20),
     ("perJet_MatchedLLP_Eta", True, -3, 3, 40),
     ("perJet_S_phiphi", True, 0, 0.08, 40),
     ("perJet_S_etaeta", True, 0, 0.08, 40),
     ("perJet_S_etaphi", True, 0, 0.05, 40),
-    ("perJet_TDCavg", False, 0, 0, 30),
-    ("perJet_TDCavg_energyWeight", False, 0, 0, 30),
-    ("perJet_Timeavg", False, 0, 0, 20),
-    ("perJet_TDCnDelayed", False, 0, 0, 20)
+    ("perJet_TDCavg", True, 0, 2, 30),
+    ("perJet_TDCavg_energyWeight", True, 0, 2, 30),
+    ("perJet_Timeavg", True, 0, 2, 30),
+    ("perJet_TDCnDelayed", True, 0, 10, 30)
 ]
 
 # -- Selection functions
@@ -123,7 +98,7 @@ def get_graph_range_cut(data_array, var_name, lower_bound, upper_bound):
     return (data_array[var_name] >= lower_bound) & (data_array[var_name] <= upper_bound)
 
 # -- Plotting function with normalization option
-def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bound=None, bins=50, extra_mc_cuts=None, extra_mc_cuts_function=None, normalize_to_one=False, output_prefix="plot"):
+def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bound=None, bins=50, extra_mc_cuts=None, normalize_to_one=False, output_prefix="plot"):
     print("Running plotting function: make_overlay_plot() for " + var_name)
     plt.figure(figsize=(8, 6))
 
@@ -155,16 +130,19 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
 
     # Extra MC cuts (optional)
     if extra_mc_cuts:
-        for label, (tmin, tmax), color in extra_mc_cuts:
+        for label, (min, max), color, extra_mc_cuts_function in extra_mc_cuts:
             if modified_range:
-                cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, tmin, tmax) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
+                cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, min, max) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
             else:
-                cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, tmin, tmax)
+                cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, min, max)
             vals = mc_arrays[var_name][cut_mask]
             if normalize_to_one and len(vals) > 0:
                 weights = np.ones_like(vals) / len(vals)
             else:
                 weights = None
+            if var_name == "perJet_EleEFrac":
+                hist_vals, _ = np.histogram(vals, bins=bin_edges, weights=weights)
+                print(f"{label} plotted bin values: {hist_vals}")
             plt.hist(vals, weights=weights, label=f"LLP MC ({label})", color=color, **hist_kwargs)
 
     plt.xlabel(var_name)
@@ -178,7 +156,7 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
         plt.gca().set_yscale('log')
 
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"all_vars_time_constraints/{outname}"
+    outname = f"all_vars_decay_r_constraints/{outname}"
     plt.savefig(outname)
     plt.close()
 
@@ -186,28 +164,26 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
 
 # -- Extra MC regions to compare (optional)
 extra_decay_r_mc_regions = [
-    ("DecayR Tracker 0-10 cm", (0, 10), "green"),
-    ("DecayR Tracker 10-129 cm", (10, 129), "red"),
-    ("DecayR ECAL 129–177 cm", (129, 177), "orange"),
-    ("DecayR HCAL 177-295 cm", (177, 295), "blue")
+    ("DecayR Tracker 0-10 cm", (0, 10), "green", get_decay_r_mc_cut),
+    ("DecayR Tracker 10-129 cm", (10, 129), "red", get_decay_r_mc_cut),
+    ("DecayR ECAL 129–177 cm", (129, 177), "orange", get_decay_r_mc_cut),
+    ("DecayR HCAL 177-295 cm", (177, 295), "blue", get_decay_r_mc_cut),
+    ("η tracker -1.4-1.4", (-1.4, 1.4), "purple", get_eta_mc_cut)
 ]
 
-extra_time_constraints = [
-    ("Time 0-1 ns", (0, 1), "green"),
-    ("Time 1-5 ns", (1, 5), "red"),
-    ("Time 5-10 ns", (5, 10), "orange"),
-    ("Time 10-20 ns", (10, 20), "blue")
-]
-
-exta_eta_constraints = [
-    ("η tracker -1.4-1.4", (-1.4, 1.4), "green"),
+extra_time_mc_regions = [
+    ("Time 0-1 ns", (0, 1), "green", get_timing_mc_cut),
+    ("Time 1-5 ns", (1, 5), "red", get_timing_mc_cut),
+    ("Time 5-10 ns", (5, 10), "orange", get_timing_mc_cut),
+    ("Time 10-20 ns", (10, 20), "blue", get_timing_mc_cut),
+    ("η tracker -1.4-1.4", (-1.4, 1.4), "purple", get_eta_mc_cut)
 ]
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
 
-# Change based on type of constraint used (eta, time, decay r)
-constraint_type, constraint_function, detailed_variables_to_plot = extra_time_constraints, get_timing_mc_cut, detailed_time_constraint_vars 
+# Change based on type of constraint used (time or decay r)
+constraint_type, detailed_variables_to_plot = extra_decay_r_mc_regions, detailed_decay_r_constraint_vars 
 
 for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
-    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, extra_mc_cuts_function=constraint_function, normalize_to_one=normalize, output_prefix="overlay")
+    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, normalize_to_one=normalize, output_prefix="overlay")
