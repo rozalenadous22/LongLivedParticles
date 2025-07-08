@@ -1,6 +1,7 @@
 import uproot
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 # -- File paths
 envdata_file =  "/home/submit/rozalena/LLP_Project_Data/Data_LLPskim_Run2023Cv4_ntuplesv3_20June.root" 
@@ -162,6 +163,126 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
 
     print("Saved plots to current directory!")
 
+# def make_2d_hist_plot():
+#     print("Running plotting function: make_2d_hist_plot()")
+#     plt.figure(figsize=(8, 6))
+
+#     # four decay r regions (cm): Tracker-inner, Tracker-outer, ECAL, HCAL
+#     decayr_bins = np.array([0, 10, 129, 177, 295])     
+
+#     # four timing regions (ns)  :  prompt 0-1, 1-5, 5-10, 10-20
+#     time_bins   = np.array([0, 1, 5, 10, 20])  
+
+#     decay_r_data = mc_arrays["perJet_MatchedLLP_DecayR"][mc_mask]
+#     travel_time_data = mc_arrays["perJet_MatchedLLP_TravelTime"][mc_mask]
+
+#     counts, _, _ = np.histogram2d(decay_r_data, travel_time_data,
+#                                 bins=[decayr_bins, time_bins])
+#     counts_norm = counts / counts.sum()
+
+#     fig, ax = plt.subplots(figsize=(6, 6))
+#     im = ax.imshow(counts_norm.T, origin='lower', cmap='viridis', aspect='equal')
+
+#     ax.set_xticks(np.arange(4) + 0.5)
+#     ax.set_yticks(np.arange(4) + 0.5)
+#     x_range_labels = ["10", "129", "177", "295"]
+#     ax.set_xticklabels(x_range_labels)   
+#     y_range_labels = ["1", "5", "10", "20"]
+#     ax.set_yticklabels(y_range_labels)
+
+#     ax.set_xticks(np.arange(-.5, 4, 1), minor=True)
+#     ax.set_yticks(np.arange(-.5, 4, 1), minor=True)
+#     ax.grid(which='minor', color='w', linewidth=1)
+
+#     ax.set_xlabel("LLP Decay-R  [cm]")
+#     ax.set_ylabel("LLP Travel Time  [ns]")
+#     ax.set_title("Normalised Fraction of Jets")
+#     fig.colorbar(im, ax=ax, label="Fraction of entries")
+#     plt.tight_layout()
+#     plt.show()
+
+#     plt.savefig("decay_r_vs_time/graph")
+#     plt.close()
+#     print("Saved plot to current directory!")
+
+# def make_2d_hist():
+#     print("Running plotting function: make_2d_hist()")
+#     x_lo, x_hi = 0, 300      # Decay-R range  [cm]
+#     y_lo, y_hi = 0, 20       # Travel-time    [ns]
+
+#     n_xbins    = 30
+#     n_ybins    = 20
+
+#     decayr_edges = np.linspace(x_lo, x_hi, n_xbins + 1)
+#     time_edges   = np.linspace(y_lo, y_hi, n_ybins + 1)
+
+#     decay_r = mc_arrays["perJet_MatchedLLP_DecayR"][mc_mask]
+#     travel_t = mc_arrays["perJet_MatchedLLP_TravelTime"][mc_mask]
+
+#     counts, _, _ = np.histogram2d(decay_r, travel_t, bins=[decayr_edges, time_edges])
+#     counts_norm  = counts / counts.sum()
+
+   
+#     fig, ax = plt.subplots(figsize=(7, 5))
+
+#     pcm = ax.pcolormesh(decayr_edges, time_edges, counts_norm.T,
+#                         cmap='viridis', shading='auto',
+#                         norm=mpl.colors.LogNorm(vmin=1e-5, vmax=counts_norm.max()))
+#     # log color scale so you can see when there are 0 jets
+
+#     ax.set_xlabel("LLP Decay-R [cm]")
+#     ax.set_ylabel("LLP Travel Time [ns]")
+#     ax.set_title("Normalized Fraction of Jets (uniform bins)")
+
+#     cbar = fig.colorbar(pcm, ax=ax)
+#     cbar.set_label("Fraction of entries")
+
+#     plt.tight_layout()
+#     plt.show()
+
+#     plt.savefig("2d_histograms/decay_r_and_travel_time")
+#     plt.close()
+#     print("Saved plot to current directory!")
+
+def make_2d_no_cuts_hist_plot(x_array=None, y_array=None, x_array_mask=None, y_array_mask=None, x_data=None, y_data=None):
+    x_lo, x_hi, n_xbins, x_var_name = x_data[0], x_data[1], x_data[2], x_data[3]
+    y_lo, y_hi, n_ybins, y_var_name = y_data[0], y_data[1], y_data[2], y_data[3]
+
+    print(f"Running plotting function: make_2d_no_cuts_hist_plot() for {x_var_name} and {y_var_name}")
+
+    x_axis_edges = np.linspace(x_lo, x_hi, n_xbins + 1)
+    y_axis_edges   = np.linspace(y_lo, y_hi, n_ybins + 1)
+
+    x_axis_graph = x_array[x_var_name][x_array_mask] 
+    y_axis_graph = y_array[y_var_name][y_array_mask]
+
+
+    counts, _, _ = np.histogram2d(x_axis_graph, y_axis_graph, bins=[x_axis_edges, y_axis_edges])
+    counts_norm  = counts / counts.sum()
+
+   
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    pcm = ax.pcolormesh(x_axis_edges, y_axis_edges, counts_norm.T,
+                        cmap='viridis', shading='auto',
+                        norm=mpl.colors.LogNorm(vmin=1e-5, vmax=counts_norm.max()))
+    # log color scale so you can see when there are 0 jets
+
+    ax.set_xlabel(x_var_name)
+    ax.set_ylabel(y_var_name)
+    ax.set_title("Normalized Fraction of Jets (uniform bins)")
+
+    cbar = fig.colorbar(pcm, ax=ax)
+    cbar.set_label("Fraction of entries")
+
+    plt.tight_layout()
+    plt.show()
+
+    plt.savefig(f"2d_histograms/{x_var_name}_and_{y_var_name}")
+    plt.close()
+    print("Saved plot to current directory!")
+
+
 # -- Extra MC regions to compare (optional)
 extra_decay_r_mc_regions = [
     ("DecayR Tracker 0-10 cm", (0, 10), "green", get_decay_r_mc_cut),
@@ -185,5 +306,18 @@ normalize = True  # Set this flag to True or False based on your need
 # Change based on type of constraint used (time or decay r)
 constraint_type, detailed_variables_to_plot = extra_decay_r_mc_regions, detailed_decay_r_constraint_vars 
 
-for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
-    make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, normalize_to_one=normalize, output_prefix="overlay")
+# for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
+#     make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, normalize_to_one=normalize, output_prefix="overlay")
+
+two_d_hist_info = [
+    (0, 2, 30, "perJet_Timeavg"), 
+    (0, 2, 30, "perJet_TDCavg_energyWeight"), 
+    (0, 20, 20, "perJet_MatchedLLP_TravelTime"), 
+    (0, 300, 30, "perJet_MatchedLLP_DecayR"), 
+    ]
+# time avg vs tdc avg energy weight
+make_2d_no_cuts_hist_plot(x_array=data_arrays, y_array=data_arrays, x_array_mask=data_mask, y_array_mask=data_mask, x_data=two_d_hist_info[0], y_data=two_d_hist_info[1])
+# time avg vs matched LLP travel time
+make_2d_no_cuts_hist_plot(x_array=mc_arrays, y_array=mc_arrays, x_array_mask=mc_mask, y_array_mask=mc_mask, x_data=two_d_hist_info[0], y_data=two_d_hist_info[2])
+# matched LLP decay R vs travel time
+make_2d_no_cuts_hist_plot(x_array=mc_arrays, y_array=mc_arrays, x_array_mask=mc_mask, y_array_mask=mc_mask, x_data=two_d_hist_info[3], y_data=two_d_hist_info[2])
