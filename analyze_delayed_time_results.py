@@ -3,7 +3,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import uproot
 import numpy as np
-#from JetTimingStudy import make_overlay_plot
+from JetTimingStudy import get_graph_range_cut
+import matplotlib.pyplot as plt
+
+
 
 
 # -- File paths
@@ -63,60 +66,112 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_
 max_residual = 2
 
 
-delayed_jet_prediction_model = lgb.Booster(model_file='delayed_jet_time_predict.txt')
+delayed_jet_prediction_model = lgb.Booster(model_file='lightgbm_delayed_time_results/delayed_jet_time_predict.txt')
 Y_pred = delayed_jet_prediction_model.predict(X_test)
 
 t_true = Y_test.values.ravel() # makes a multi dimennsional array 1d
 t_pred = Y_pred.ravel()
 
-residual_mask = np.abs(t_true - t_pred) >= max_residual
-
+# for some reason t_true and t_pred are much less than t_pred (OHH PROB BC OF THE 80 20...)
+high_residual_mask = np.abs(t_true - t_pred) >= max_residual
+low_residual_mask = [not item for item in high_residual_mask]
 
 detailed_vars_to_plot = [
-    ("perJet_Timeavg", True, 0, 2, 30),
+    ("perJet_Timeavg", True, -10, 20, 50),
     ("perJet_TDCavg", True, 0, 2, 30),
-    ("perJet_TDCavg_energyWeight", True, 0, 2, 30),
+    ("perJet_TDCavg_energyWeight_log", True, 0, 1, 30),
     ("perJet_TDCnDelayed", True, 0, 10, 30),
     ("perJet_EnergyFrac_Depth1", True, 0, 1, 30),
     ("perJet_NeutralHadEFrac", True, 0, 1, 30),
-    ("perJet_Pt", True, 0, 250, 40),
-    ("perJet_Mass", True, 0, 40, 40),
+    ("perJet_Pt", True, 0, 500, 40),
+    ("perJet_Mass", True, 0, 100, 40),
     ("perJet_Area", True, 0.3, 0.7, 25),
     ("perJet_ChargedHadEFrac", True, 0, 1, 30),
     ("perJet_PhoEFrac", True, 0, 1, 30),
-    ("perJet_EleEFrac", True, 0, 0.2, 25),
-    ("perJet_MuonEFrac", True, 0, 0.2, 25),
-    ("perJet_S_phiphi", True, 0, 0.08, 40),
-    ("perJet_S_etaeta", True, 0, 0.08, 40),
-    ("perJet_S_etaphi", True, 0, 0.05, 40),
-    ("perJet_Eta", False, 0, 1, 50),
-    ("perJet_Tracks_dR", False, 0, 1, 50),
-    ("perJet_Track0dR", False, 0, 1, 50),
-    ("perJet_Track0dEta", False, 0, 1, 50),
-    ("perJet_Track0dPhi", False, 0, 1, 50),
-    ("perJet_Track1dR", False, 0, 1, 50),
-    ("perJet_Track1dEta", False, 0, 1, 50),
-    ("perJet_Track1dPhi", False, 0, 1, 50),
-    ("perJet_Track2dR", False, 0, 1, 50),
-    ("perJet_Track2dEta", False, 0, 1, 50),
-    ("perJet_Track2dPhi", False, 0, 1, 50),
-    ("perJet_Frac_Track0Pt", False, 0, 1, 50),
-    ("perJet_Frac_Track1Pt", False, 0, 1, 50),
-    ("perJet_Frac_Track2Pt", False, 0, 1, 50),
-    ("perJet_Frac_LeadingRechitE", False, 0, 1, 50),
-    ("perJet_Frac_SubLeadingRechitE", False, 0, 1, 50),
-    ("perJet_Frac_SSubLeadingRechitE", False, 0, 1, 50),
-    ("perJet_AllRechitE", False, 0, 1, 50)
+    ("perJet_EleEFrac_log", True, 0, 0.7, 25),
+    ("perJet_MuonEFrac_log", True, 0, 0.2, 25),
+    ("perJet_S_phiphi", True, 0, 0.5, 40),
+    ("perJet_S_etaeta", True, 0, 0.5, 40),
+    ("perJet_S_etaphi", True, 0, 0.5, 40),
+    ("perJet_Eta", True, -1.5, 1.5, 50),
+    ("perJet_Tracks_dR", True, 0, 100, 50),
+    ("perJet_Track0dR", True, 0, 0.4, 50),
+    ("perJet_Track0dEta", True, -0.5, 0.5, 50),
+    ("perJet_Track0dPhi", True, -0.5, 0.5, 50),
+    ("perJet_Track1dR", True, 0, 0.5, 50),
+    ("perJet_Track1dEta", True, -0.5, 0.5, 50),
+    ("perJet_Track1dPhi", True, -0.5, 0.5, 50),
+    ("perJet_Track2dR", True, 0, 0.5, 50),
+    ("perJet_Track2dEta", True, -0.5, 0.5, 50),
+    ("perJet_Track2dPhi", True, -0.5, 0.5, 50),
+    ("perJet_Frac_Track0Pt", True, 0, 50, 50),
+    ("perJet_Frac_Track1Pt", True, 0, 0.6, 50),
+    ("perJet_Frac_Track2Pt", True, 0, 0.3, 50),
+    ("perJet_Frac_LeadingRechitE", True, 0, 0.8, 50),
+    ("perJet_Frac_SubLeadingRechitE", True, 0, 0.2, 50),
+    ("perJet_Frac_SSubLeadingRechitE", True, 0, 0.2, 50),
+    ("perJet_AllRechitE", True, 0, 700, 50)
 ]
-
-
-print(len(detailed_vars_to_plot))
 
 normalize = True 
 
+print(X_test.columns)
+
+def make_residual_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bound=None, bins=50, normalize_to_one=False, output_prefix="plot", data_arrays=X_test):
+    print("Running plotting function: make_overlay_plot() for " + var_name)
+    plt.figure(figsize=(8, 6))
+
+    low_residual_mask = [not item for item in high_residual_mask]
+
+    # Base selections
+    data_array_as_np = data_arrays[var_name].to_numpy()
+    
+    if modified_range:
+        range_cut_mask = get_graph_range_cut(data_arrays, var_name, lower_bound, upper_bound)
+        high_resid_data_vals = data_array_as_np[high_residual_mask & range_cut_mask]
+        low_resid_data_vals = data_array_as_np[low_residual_mask & range_cut_mask]
+    else:
+        high_resid_data_vals = data_array_as_np[high_residual_mask]
+        low_resid_data_vals = data_array_as_np[low_residual_mask]
+
+    # Draw data
+    hist_range = (lower_bound, upper_bound) if modified_range else None
+    
+    if hist_range:
+        bin_edges = np.linspace(hist_range[0], hist_range[1], bins + 1)
+    else:
+        bin_edges = bins
+
+    hist_kwargs = dict(bins=bin_edges, range=hist_range, histtype='step', linewidth=2)
+
+    if normalize_to_one:
+        high_resid_data_weights = np.ones_like(high_resid_data_vals) / len(high_resid_data_vals) if len(high_resid_data_vals) > 0 else None # basically doing 1/N for the histogram to normalize it
+        low_resid_data_weights = np.ones_like(low_resid_data_vals) / len(low_resid_data_vals) if len(low_resid_data_vals) > 0 else None # basically doing 1/N for the histogram to normalize it
+
+        plt.hist(high_resid_data_vals, weights=high_resid_data_weights, label="High Resid Data Vals", color="black", **hist_kwargs)
+        plt.hist(low_resid_data_vals, weights=low_resid_data_weights, label="Low Resid Data Vals", color="red", **hist_kwargs)
+    else:
+        plt.hist(high_resid_data_vals, label="High Resid Data Vals", color="black", **hist_kwargs)
+        plt.hist(low_resid_data_vals, label="Low Resid Data Vals", color="red", **hist_kwargs)
+
+    plt.xlabel(var_name)
+    plt.title(var_name)
+    plt.ylabel("Normalized Fraction of Entries" if normalize_to_one else "Entries")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    if "log" in var_name:
+        plt.gca().set_yscale('log')
+
+    # output_prefix = f"log_scale_{output_prefix}" if log in var_name else output_prefix
+    outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
+    outname = f"delayed_time_data_with_high_resid/{outname}"
+    plt.savefig(outname)
+    plt.close()
 
 # # outdated jettiming study... 
-# for var, modify_range, lower_bound, upper_bound, bins  in detailed_vars_to_plot:
-#     make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=None, normalize_to_one=normalize, output_prefix="overlay")
-
+for var, modify_range, lower_bound, upper_bound, bins  in detailed_vars_to_plot:
+    make_residual_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, normalize_to_one=normalize, output_prefix="overlay", data_arrays=X_test)
+# resid_mask - len 35804
 
