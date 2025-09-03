@@ -6,15 +6,13 @@ import numpy as np
 from JetTimingStudy import get_graph_range_cut
 import matplotlib.pyplot as plt
 
-
-
-
-# -- File paths
+# -- File path
 envdata_file =  "/home/submit/rozalena/LLP_Project_Data/hadd_LLPSkim_minituple_job0.root" 
 
 # -- Tree name
 tree_name = "PerJet_NoSel"
 
+# -- Variables to plot on a log scale
 data_vars_plot_log = ["perJet_EleEFrac", "perJet_MuonEFrac", "perJet_TDCavg_energyWeight"]
 
 # -- Variables to plot
@@ -37,16 +35,13 @@ def load_tree(file_path, tree_name):
 
 data_tree = load_tree(envdata_file, tree_name)
 
-
 x_data_arrays = data_tree.arrays(x_var_names , library="np") 
 y_data_arrays = data_tree.arrays(y_var_names, library="np")
 
 data_mask = (y_data_arrays["QIE_phase"] >= -10) & (y_data_arrays["QIE_phase"] <= 10)
 
-
 X = pd.DataFrame()
 Y = pd.DataFrame()
-
 
 for var_name in x_var_names:
     if var_name in data_vars_plot_log:
@@ -54,17 +49,13 @@ for var_name in x_var_names:
     else:
         X[var_name] = pd.DataFrame(x_data_arrays[var_name][data_mask])
 
-
 Y["QIE_phase"] = pd.DataFrame(y_data_arrays["QIE_phase"][data_mask])
-
 
 # random state = any integer so the results can be recreated everytime we run this program
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
-
-# change based on what 
+# residuals more than max residual will be marked as high resid data points
 max_residual = 2
-
 
 delayed_jet_prediction_model = lgb.Booster(model_file='lightgbm_delayed_time_results/delayed_jet_time_predict.txt')
 Y_pred = delayed_jet_prediction_model.predict(X_test)
@@ -72,7 +63,6 @@ Y_pred = delayed_jet_prediction_model.predict(X_test)
 t_true = Y_test.values.ravel() # makes a multi dimennsional array 1d
 t_pred = Y_pred.ravel()
 
-# for some reason t_true and t_pred are much less than t_pred (OHH PROB BC OF THE 80 20...)
 high_residual_mask = np.abs(t_true - t_pred) >= max_residual
 low_residual_mask = [not item for item in high_residual_mask]
 
@@ -115,13 +105,9 @@ detailed_vars_to_plot = [
 
 normalize = True 
 
-print(X_test.columns)
-
 def make_residual_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bound=None, bins=50, normalize_to_one=False, output_prefix="plot", data_arrays=X_test):
     print("Running plotting function: make_overlay_plot() for " + var_name)
     plt.figure(figsize=(8, 6))
-
-    low_residual_mask = [not item for item in high_residual_mask]
 
     # Base selections
     data_array_as_np = data_arrays[var_name].to_numpy()
@@ -164,14 +150,11 @@ def make_residual_overlay_plot(var_name, modified_range=False, lower_bound=None,
     if "log" in var_name:
         plt.gca().set_yscale('log')
 
-    # output_prefix = f"log_scale_{output_prefix}" if log in var_name else output_prefix
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
     outname = f"delayed_time_data_with_high_resid/{outname}"
     plt.savefig(outname)
     plt.close()
 
-# # outdated jettiming study... 
+# -- Make residual overlay plot 
 for var, modify_range, lower_bound, upper_bound, bins  in detailed_vars_to_plot:
     make_residual_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, normalize_to_one=normalize, output_prefix="overlay", data_arrays=X_test)
-# resid_mask - len 35804
-

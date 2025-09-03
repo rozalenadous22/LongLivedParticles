@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 # -- File paths
-envdata_file =  "/home/submit/rozalena/LLP_Project_Data/Data_LLPskim_Run2023Cv4_ntuplesv3_20June.root" 
+envdata_file =  "/home/submit/rozalena/LLP_Project_Data/hadd_LLPSkim_minituple_job0.root"
 mc_file = "/home/submit/rozalena/LLP_Project_Data/MC_LLP_mh125_ms50_ctau3m_ntuplesv3_5June_small.root"
 
 # -- Tree name
@@ -37,6 +37,7 @@ detailed_time_constraint_vars = [
     ("perJet_TDCnDelayed", True, 0, 10, 30)
 ]
  
+ # -- Ideal for decay r constraints
 detailed_decay_r_constraint_vars = [
     ("perJet_EnergyFrac_Depth1", True, 0, 1, 30),
     ("perJet_NeutralHadEFrac", True, 0, 1, 30),
@@ -60,6 +61,29 @@ detailed_decay_r_constraint_vars = [
     ("perJet_TDCnDelayed", True, 0, 10, 30)
 ]
 
+# -- Ideal for no MC cuts (excludes petJet_MatchedLLP_TravelTime for 2d hist)
+detailed_data_no_constraints = [
+    ("perJet_EnergyFrac_Depth1", 0, 1, 30),
+    ("perJet_NeutralHadEFrac", 0, 1, 30),
+    ("perJet_Pt", 0, 500, 40),
+    ("perJet_Mass", 0, 60, 40),
+    ("perJet_Area", 0.35, 0.6, 25),
+    ("perJet_ChargedHadEFrac", 0, 1, 30),
+    ("perJet_PhoEFrac", 0, 1, 30),
+    ("perJet_EleEFrac", 0, 1, 25),
+    ("perJet_MuonEFrac", 0, 1, 25),
+    ("perJet_S_phiphi", 0, 0.2, 40),
+    ("perJet_S_etaeta", 0, 0.2, 40),
+    ("perJet_S_etaphi", 0, 0.2, 40),
+    ("perJet_TDCavg", 0, 2, 30),
+    ("perJet_TDCavg_energyWeight", 0, 2, 30),
+    ("perJet_Timeavg", -5, 10, 30),
+    ("perJet_TDCnDelayed", 0, 10, 30),
+    ("perJet_MatchedLLP_DecayZ", -500, 500, 40),
+    ("perJet_MatchedLLP_DecayR", 0, 500, 40),
+    ("perJet_MatchedLLP_Eta", -3, 3, 40)
+]
+
 # -- Selection functions
 def load_tree(file_path, tree_name):
     file = uproot.open(file_path)
@@ -77,8 +101,7 @@ data_arrays = data_tree.arrays(variables_to_plot + ["Pass_WPlusJets"], library="
 mc_arrays = mc_tree.arrays(variables_to_plot + ["Pass_LLPMatched", "perJet_MatchedLLP_DecayR"], library="np")
 
 # -- Basic selections
-# Pass_WPlusJets when a W+ boson is produced along with some jets (spray of particles that comes from particle collisions)
-data_mask = data_arrays["Pass_WPlusJets"] == 1
+data_mask = data_arrays["Pass_WPlusJets"] == 1 
 mc_mask = mc_arrays["Pass_LLPMatched"] == 1 # would also add must pass the LLP trigger selection
 
 data_vars_to_ignore = ["perJet_MatchedLLP_Eta", "perJet_MatchedLLP_DecayZ", "perJet_MatchedLLP_DecayR", "perJet_MatchedLLP_TravelTime"]
@@ -136,6 +159,9 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
                 cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, min, max) & get_graph_range_cut(mc_arrays, var_name, lower_bound, upper_bound)
             else:
                 cut_mask = mc_mask & extra_mc_cuts_function(mc_arrays, min, max)
+
+            cut_mask = cut_mask & get_eta_mc_cut(mc_arrays, -1.4, 1.4)
+
             vals = mc_arrays[var_name][cut_mask]
             if normalize_to_one and len(vals) > 0:
                 weights = np.ones_like(vals) / len(vals)
@@ -154,7 +180,8 @@ def make_overlay_plot(var_name, modified_range=False, lower_bound=None, upper_bo
         plt.gca().set_yscale('log')
 
     outname = f"{output_prefix}_{var_name}_normalized.png" if normalize_to_one else f"{output_prefix}_{var_name}.png"
-    outname = f"all_vars_decay_r_constraints/{outname}"
+    # change outname based on MC cut used
+    outname = f"all_vars_time_constraints/{outname}"
     plt.savefig(outname)
     plt.close()
 
@@ -204,62 +231,29 @@ extra_decay_r_mc_regions = [
     ("DecayR Tracker 0-10 cm", (0, 10), "green", get_decay_r_mc_cut),
     ("DecayR Tracker 10-129 cm", (10, 129), "red", get_decay_r_mc_cut),
     ("DecayR ECAL 129–177 cm", (129, 177), "orange", get_decay_r_mc_cut),
-    ("DecayR HCAL 177-295 cm", (177, 295), "blue", get_decay_r_mc_cut),
-    ("η tracker -1.4-1.4", (-1.4, 1.4), "purple", get_eta_mc_cut)
+    ("DecayR HCAL 177-295 cm", (177, 295), "blue", get_decay_r_mc_cut)
 ]
 
 extra_time_mc_regions = [
     ("Time 0-1 ns", (0, 1), "green", get_timing_mc_cut),
     ("Time 1-5 ns", (1, 5), "red", get_timing_mc_cut),
     ("Time 5-10 ns", (5, 10), "orange", get_timing_mc_cut),
-    ("Time 10-20 ns", (10, 20), "blue", get_timing_mc_cut),
-    ("η tracker -1.4-1.4", (-1.4, 1.4), "purple", get_eta_mc_cut)
+    ("Time 10-20 ns", (10, 20), "blue", get_timing_mc_cut)
 ]
 
 # -- Loop over variables and make plots with normalization option
 normalize = True  # Set this flag to True or False based on your need
 
-detailed_data_no_constraints = [
-    ("perJet_EnergyFrac_Depth1", 0, 1, 30),
-    ("perJet_NeutralHadEFrac", 0, 1, 30),
-    ("perJet_Pt", 0, 500, 40),
-    ("perJet_Mass", 0, 60, 40),
-    ("perJet_Area", 0.35, 0.6, 25),
-    ("perJet_ChargedHadEFrac", 0, 1, 30),
-    ("perJet_PhoEFrac", 0, 1, 30),
-    ("perJet_EleEFrac", 0, 1, 25),
-    ("perJet_MuonEFrac", 0, 1, 25),
-    ("perJet_S_phiphi", 0, 0.2, 40),
-    ("perJet_S_etaeta", 0, 0.2, 40),
-    ("perJet_S_etaphi", 0, 0.2, 40),
-    ("perJet_TDCavg", 0, 2, 30),
-    ("perJet_TDCavg_energyWeight", 0, 2, 30),
-    ("perJet_Timeavg", -5, 10, 30),
-    ("perJet_TDCnDelayed", 0, 10, 30)
-]
+# change based on type of constraint used
+constraint_type, detailed_variables_to_plot = extra_time_mc_regions, detailed_time_constraint_vars 
 
-detailed_mc_llp_no_constraints = [
-    ("perJet_MatchedLLP_DecayZ", -500, 500, 40),
-    ("perJet_MatchedLLP_DecayR", 0, 500, 40),
-    ("perJet_MatchedLLP_TravelTime", 0, 25, 20),
-    ("perJet_MatchedLLP_Eta", -3, 3, 40)
-]
-
-# Change based on type of constraint used (time or decay r)
-
-extra_decay_r_mc_regions_2 = [
-    ("DecayR Tracker 0-however cm", (0, 10), "green", get_decay_r_mc_cut)]
-#constraint_type, detailed_variables_to_plot = extra_decay_r_mc_regions_2, detailed_mc_llp_no_constraints 
-
+# -- Create 1d hist overlay plots 
 # for var, modify_range, lower_bound, upper_bound, bins  in detailed_variables_to_plot:
-#     make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=extra_decay_r_mc_regions_2, normalize_to_one=normalize, output_prefix="overlay")
+#     make_overlay_plot(var, modified_range=modify_range, lower_bound=lower_bound, upper_bound=upper_bound, bins=bins, extra_mc_cuts=constraint_type, normalize_to_one=normalize, output_prefix="overlay")
 
-two_d_hist_info = [
-    ("perJet_Timeavg", -5, 10, 30)
-]
 
-for var in detailed_mc_llp_no_constraints:
-    make_2d_no_cuts_hist_plot(x_array=mc_arrays, y_array=mc_arrays, x_array_mask=mc_mask, y_array_mask=mc_mask, x_data=two_d_hist_info[0], y_data=var)
+# -- Create 2d histogram plots
+mc_traveltime_2d_hist_info = ("perJet_MatchedLLP_TravelTime", 0, 25, 20) # Compare all 2d hist vars with MC travel time
 
-for var in detailed_data_no_constraints:
-    make_2d_no_cuts_hist_plot(x_array=data_arrays, y_array=data_arrays, x_array_mask=data_mask, y_array_mask=data_mask, x_data=two_d_hist_info[0], y_data=var)
+# for var in detailed_data_no_constraints:
+#     make_2d_no_cuts_hist_plot(x_array=mc_arrays, y_array=mc_arrays, x_array_mask=mc_mask, y_array_mask=mc_mask, x_data=mc_traveltime_2d_hist_info, y_data=var)

@@ -103,11 +103,11 @@ print(f"MAE: {mae}")
 print(f"R-squared: {r2}")
 
 
-bst.save_model("delayed_jet_time_predict.txt")
+bst.save_model("lightgbm_delayed_time_results/delayed_jet_time_predict.txt")
 
 
 def make_calibration_plot(t_true, t_pred, # actual and model-predicted travel times [ns]
-                          figname="delayed_travel_time_resid_plots.png",                 
+                          figname="lightgbm_delayed_time_results/delayed_travel_time_resid_plots.png",                 
                           n_hex=80, # resolution of hexbin grid (top)             
                           n_bins=30): # num bins for resid panel (bottom)              
     
@@ -184,7 +184,7 @@ lgb.plot_importance(bst, importance_type="split", max_num_features=10)
 plt.xlabel("# times split based on var")
 plt.ylabel("var name")
 plt.tight_layout()
-plt.savefig("feature_importance")
+plt.savefig("lightgbm_delayed_time_results/feature_importance")
 plt.close()
 
 
@@ -200,7 +200,7 @@ plt.axvline(x=final_round, linestyle='--', color='red', lw=1, label=f'best iter,
 plt.title("Validation RMSE vs. boosting round", pad=10)
 plt.legend()
 plt.tight_layout()
-plt.savefig("delayed_time_RMSE_results")
+plt.savefig("lightgbm_delayed_time_results/delayed_time_RMSE_results")
 plt.close()
 
 
